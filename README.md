@@ -1,0 +1,1 @@
+# EpiGen: generator of epidemies on synthetic graphs
