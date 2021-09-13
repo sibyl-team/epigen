@@ -33,7 +33,7 @@ class EpInstance:
         self.seed = seed
         self.p_edge = p_edge
         self.n_src = n_source
-        self.old_print = False
+        self.old_print = False if n_source > 1 else True
 
     def as_dict(self):
         return {
@@ -80,7 +80,7 @@ class EpInstance:
             self.type_graph, self.n, self.d, self.t_limit, self.lambda_,
             0 if self.mu == 0 else self.mu, self.seed, self.p_edge
         )
-        if self.n_src == 1 or self.old_print:
+        if self.old_print:
             return basestr
         else:
             return basestr+f"_nsrc_{self.n_src}"

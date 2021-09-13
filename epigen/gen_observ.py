@@ -125,8 +125,8 @@ def create_observations(infect_t, all_epidemies, num_test_t:int,
                     obsperN[l] = tuple(zip(np.where(obsdone)[0], epid_trace[obsdone,l]))
                     if np.any(epid_trace[obsdone,l] == 1):
                         obsinf.add(l)
-            print("INF NODES:", sorted(obsinf))
-            print("ALL OBS NODES: ",obsperN.keys())
+            #print("INF NODES:", sorted(obsinf))
+            #print("ALL OBS NODES: ",obsperN.keys())
             #print(obsperN)
 
     return obs_df, obs_all
