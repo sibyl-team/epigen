@@ -171,7 +171,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
         contacts = generators.generate_contacts(G, t_limit, lambda_, 
                                             p_edge=p_edge, seed=seed)
     elif type_graph == "data_deltas" or type_graph == "i_bird":
-        contacts = np.load(data_gen["path_contacts"])["contacts"]
+        contacts = np.load(data_gen["path_contacts"], allow_pickle=True)["contacts"]
         contacts = cut_contacts_list(contacts, 
                              data_gen["start_time"], 
                              t_limit, 
@@ -181,7 +181,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
         gamma=data_gen["gamma"]
         contacts[:, 3] = 1 - np.exp(-gamma * contacts[:,3])
     elif type_graph == "data":
-        contacts = np.load(data_gen["path_contacts"])["contacts"]
+        contacts = np.load(data_gen["path_contacts"], allow_pickle=True)["contacts"]
         contacts = cut_contacts_list(contacts, 
                              data_gen["start_time"], 
                              t_limit, 
@@ -189,7 +189,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
                              small_lambda_limit = data_gen["small_lambda_limit"])
     elif type_graph == "data_deltas_2_gamma":
         rnd_gen = np.random.RandomState(seed=seed)
-        contacts = np.load(data_gen["path_contacts"])["contacts"]
+        contacts = np.load(data_gen["path_contacts"], allow_pickle=True)["contacts"]
         contacts = cut_contacts_list(contacts, 
                              data_gen["start_time"], 
                              t_limit, 
