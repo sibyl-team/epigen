@@ -189,7 +189,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
                              small_lambda_limit = data_gen["small_lambda_limit"])
     elif type_graph == "data_deltas_2_gamma":
         rnd_gen = np.random.RandomState(seed=seed)
-        contacts = np.load(data_gen["path_contacts"])["contacts"]
+        contacts = np.load(data_gen["path_contacts"], allow_pickle=True)["contacts"]
         contacts = cut_contacts_list(contacts, 
                              data_gen["start_time"], 
                              t_limit, 
@@ -208,13 +208,15 @@ def epidemy_gen_new(type_graph:str = "RRG",
         data_extend["nodes_1"] = nodes_1
         data_extend["nodes_2"] = nodes_2
         for cc in range(len(contacts)):
-            norm_err = (1+rnd_gen.normal(data_gen["gauss_mean"], data_gen["gauss_sigma"]))
+            norm_err=1
+            if "gauss_mean" and "gauss_sigma" in data_gen:
+                norm_err = (1+rnd_gen.normal(data_gen["gauss_mean"], data_gen["gauss_sigma"]))
             if int(contacts[cc][2]) in nodes_1:
                 contacts[cc][3] = 1-np.exp(-gamma1 * contacts[cc][3] * norm_err)
             elif int(contacts[cc][2]) in nodes_2:
                 contacts[cc][3] = 1-np.exp(-gamma2 * contacts[cc][3] * norm_err)
             else:
-                print("ERROR nodes not founds in split arrays EXIT")
+                print("ERROR nodes not found in split arrays EXIT")
                 return False
         data_extend["contacts_run"] = np.copy(contacts)
         
