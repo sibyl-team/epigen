@@ -86,10 +86,11 @@ def epidemy_gen_epinstance(inst, lim_infected=None,
                         extra_gen=None,
                         verbose=True,
                         print_out=True,
-                        unique_ninf=False
+                        unique_ninf=False,
+                        sources=None
                         ):
     """
-    Generate epidemies from libsaving.EpInstance object
+    Pippo Generate epidemies from libsaving.EpInstance object
     """
     if extra_gen is not None:
         data_gen = dict(extra_gen)
@@ -115,6 +116,7 @@ def epidemy_gen_epinstance(inst, lim_infected=None,
         print_out=print_out,
         unique_ninf=unique_ninf,
         num_sources=num_sources,
+        sources=sources
     )
     try:
         inst.n = len(data_res["G"].nodes)
@@ -136,7 +138,8 @@ def epidemy_gen_new(type_graph:str = "RRG",
                     data_gen:dict=None,
                     verbose=True,
                     print_out=True,
-                    unique_ninf=False):
+                    unique_ninf=False,
+                    sources=None):
     if data_gen is None:
         data_gen = {
             "N" : 10,
@@ -279,7 +282,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
                                 mu, t_limit,num_source=num_sources,
                                 num_conf = num_conf, seed=seed,
                                 lim_infected=lim_infected, max_infected=max_infected,
-                                print_=verbose, unique_nI_nR=unique_ninf)
+                                print_=verbose, unique_nI_nR=unique_ninf,  sources=sources)
     print()
     if print_out:
         for tt in range(len(test)):

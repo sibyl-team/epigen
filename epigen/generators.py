@@ -22,7 +22,7 @@ def generate_contacts(G, t_limit, lambda_, p_edge=1, seed=1):
     return contacts.view("f8").reshape(-1,4) #.astype(np.float32)
 
 
-def generate_one_sim(contacts, mu, t_limit, n, n_seed):
+def generate_one_sim(contacts, mu, t_limit, n, n_seed, sources=None):
     """
     MC simulations of SIR, return configuration at T0 and Tend
 
@@ -32,11 +32,14 @@ def generate_one_sim(contacts, mu, t_limit, n, n_seed):
      n: number of nodes
      random_seed: seed for random library, [default -1, random_seed]
     """
-    sources = set() #[ for _ in range(n_seed)]
-    while len(sources) < n_seed:
-        src = random.randint(0, n - 1)
-        if src not in sources:
-            sources.add(src)
+    if sources == None:
+        sources = set()  #[ for _ in range(n_seed)]
+        while len(sources) < n_seed:
+            src = random.randint(0, n - 1)
+            if src not in sources:
+                sources.add(src)
+    print(f" Sources {sources}")
+
     #sources = np.random.randint(0,n, n_seed)
     T0 = -1
     delay, epidemy, fathers = propagate.init_arrays(n, mu, np.inf)
@@ -64,7 +67,8 @@ def generate_configurations(n, contacts,
                             max_infected = None,
                             print_ = True,
                             unique_nI_nR=False,
-                           seed=1):
+                            seed=1,
+                            sources = None):
     """
     MC simulations of SIR, return "num_conf" configuration at time zero and t_limit
      contacts : list([time, node_i, node_j, lambda_ij])
@@ -99,7 +103,7 @@ def generate_configurations(n, contacts,
         tries = 0
         while (not_accept and tries < 100):
             ### keep generating epidemies until we get a satisfactory one
-            results = generator_fun(contacts, mu, t_limit, n, num_source)
+            results = generator_fun(contacts, mu, t_limit, n, num_source, sources=sources)
             tries += 1
             tot_conf_gen += 1
             ninf = results["num_infected"]
@@ -142,7 +146,7 @@ def generate_configurations(n, contacts,
     return configurations, epidemies
 
 
-def generate_sis_sim(contacts, mu, t_limit, n, n_sources):
+def generate_sis_sim(contacts, mu, t_limit, n, n_sources, sources = None):
     trc = propagate.gen_epidemy_sis(n, t_limit, mu, contacts, n_sources)
     recv_times = propagate.get_recovery_times(trc)
     epidemy = propagate.get_times_infecter(trc)
