@@ -74,6 +74,15 @@ class EpInstance:
                      self.p_edge,
                      self.n_src
                     ))
+    def __repr__(self):
+        reprstring = f"""EpInstance:
+    type: {self.type_graph}, d: {self.d}, N: {self.n}, seed: {self.seed},
+    lambda: {self.lambda_}, mu: {self.mu}, p_edge: {self.p_edge}, num src: {self.n_src}"""
+        return reprstring
+
+    def __eq__(self, o):
+        return hash(o) == hash(self)
+
 
     def __str__(self):
         basestr= "{}_n_{}_d_{}_tlim_{}_lam_{}_mu_{}_s_{}_pe_{}".format(
