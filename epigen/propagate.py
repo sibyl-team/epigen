@@ -73,6 +73,21 @@ def propagate_discrete_epi(contacts, epidemy, delay, fathers):
         #old_states[n1] = state
     return np.stack((epidemy, fathers))
 
+def get_full_epidemy_trace(times, inf_t, rec_t):
+    """
+    Get the trace of the epidemy, assuming that rec_t is the recovery delay
+    IMPORTANT:
+    Infection times are defined as when the nodes BECOME infected
+
+    """
+    rec_t = rec_t[:,np.newaxis]
+    inf_t = inf_t[:,np.newaxis]
+    #res = torch.zeros(times.shape[0],inf_t.shape[0])
+    res = (times >= inf_t).astype(int)
+    res += (times >= (inf_t+rec_t)).astype(int)
+    return res
+
+
 ### SIS model
 
 @numba.jit(void(int64, float64, int64, int8[:, :], int64[:, :]), nopython=True)
