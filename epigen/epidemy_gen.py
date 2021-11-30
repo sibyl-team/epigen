@@ -3,64 +3,6 @@ import numpy as np
 import pandas as pd
 from . import generators, net_gen
 
-def epidemy_gen(N, d, h, t_limit,
-                type_graph = "RRG",
-                lambda_=0.5, 
-                mu=1e-10, 
-                p_edge = 1,
-                lim_infected = None,
-                seed=1,
-                num_conf=10
-               ):
-
-    if lim_infected == None:
-        lim_infected = int(N/20)
-
-    if type_graph == "RRG":
-        G = nx.random_regular_graph(d, N, seed=seed)
-    elif type_graph == "TREE":
-        G = nx.balanced_tree(d-1, h)
-        N = G.number_of_nodes()
-    else:
-        print(f"graph {type_graph} not yet implemented")
-        print("END")
-        return None
-
-    print(f"nodes:{N}, edges:{len(G.edges())}")
-
-    contacts = generators.generate_contacts(G, t_limit, lambda_, 
-                                            p_edge=p_edge, seed=seed)
-
-    print(f"number of contacs: {len(contacts)}")
-
-
-    test, epidemies = generators.generate_configurations(N, contacts, 
-                                mu, t_limit, num_conf = num_conf, seed=seed,
-                                                         lim_infected=lim_infected)
-    print()
-    for tt in range(len(test)):
-        ttt = np.array(test[tt][1])
-        print(f"S:{len(ttt[ttt==0])}, I:{len(ttt[ttt==1])}, R:{len(ttt[ttt==2])}")
-
-    data_ = {
-        "epidemy":epidemies,
-        "test" : test,
-        "G" : G,
-        "contacts" : contacts,
-        "params":{
-            "seed" : seed,
-            "type_graph" : type_graph,
-            "N" : N,
-            "d" : d,
-            "h" : h,
-            "t_limit" : t_limit, # Numbers of epoch of our epidemics spreading [0,1,...,T_limit-1]
-            "lambda_" : lambda_, # probability of infection
-            "mu" : mu, # probability of recovery
-            "p_edge" : p_edge
-        }
-    }
-    
-    return data_
 
 def cut_contacts_list(contacts_, start_time, end_time, shift_t=True, small_lambda_limit = 0):
     contacts_to_save = [cc for cc in contacts_ if (cc[0] >= start_time and cc[0] < end_time and cc[3] > small_lambda_limit)]
@@ -90,7 +32,7 @@ def epidemy_gen_epinstance(inst, lim_infected=None,
                         sources=None
                         ):
     """
-    Pippo Generate epidemies from libsaving.EpInstance object
+    Generate epidemies from libsaving.EpInstance object
     """
     if extra_gen is not None:
         data_gen = dict(extra_gen)

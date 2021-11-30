@@ -56,6 +56,21 @@ def generate_one_sim(contacts, mu, t_limit, n, n_seed, sources=None):
     return {"confs": [start_conf.tolist(), end_conf.tolist()], "inf_rec": [infected, recovery],
             "num_infected": num_inf, "num_recovery": num_recovery, "epidemy": epidemy_res, "delays": delay}
 
+def generate_sis_sim(contacts, mu, t_limit, n, n_sources, sources = None):
+    """
+    Generate SIS epidemy
+    """
+    trc = propagate.gen_epidemy_sis(n, t_limit, mu, contacts, n_sources)
+    recv_times = propagate.get_recovery_times(trc)
+    epidemy = propagate.get_times_infecter(trc)
+    conf_start = trc[0, 0]
+    conf_end = trc[0, -1]
+    num_rec = len(np.hstack(recv_times))
+    num_rec_per_node = [len(x) for x in recv_times]
+    return {"confs": [conf_start.tolist(), conf_end.tolist()], "num_infected": len(epidemy),
+            "num_recovery": num_rec, "num_recov_nodes": num_rec_per_node,
+            "epidemy": epidemy, "delays": [x.tolist() for x in recv_times]}
+
 
 def generate_configurations(n, contacts,
                             mu, t_limit,
@@ -146,19 +161,10 @@ def generate_configurations(n, contacts,
     return configurations, epidemies
 
 
-def generate_sis_sim(contacts, mu, t_limit, n, n_sources, sources = None):
-    trc = propagate.gen_epidemy_sis(n, t_limit, mu, contacts, n_sources)
-    recv_times = propagate.get_recovery_times(trc)
-    epidemy = propagate.get_times_infecter(trc)
-    conf_start = trc[0, 0]
-    conf_end = trc[0, -1]
-    num_rec = len(np.hstack(recv_times))
-    num_rec_per_node = [len(x) for x in recv_times]
-    return {"confs": [conf_start.tolist(), conf_end.tolist()], "num_infected": len(epidemy),
-            "num_recovery": num_rec, "num_recov_nodes": num_rec_per_node,
-            "epidemy": epidemy, "delays": [x.tolist() for x in recv_times]}
-
 def calc_epidemies(epid_test_output,init_fin_confs,t_limit,no_delays=False):
+    """
+    Construct matrix of states by time
+    """
     num_test_conf = len(epid_test_output)
     full_epidemies = []
     t_arrs = np.arange(t_limit+1)
