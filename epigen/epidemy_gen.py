@@ -24,7 +24,6 @@ def cut_contacts_list(contacts_, start_time, end_time, shift_t=True, small_lambd
 def epidemy_gen_epinstance(inst, lim_infected=None,
                         max_infected = None,
                         num_conf=10,
-                        num_sources=1,
                         extra_gen=None,
                         verbose=True,
                         print_out=True,
@@ -43,6 +42,8 @@ def epidemy_gen_epinstance(inst, lim_infected=None,
     data_gen["lambda_"] = inst.lambda_
     data_gen["d"] = inst.d
     data_gen["p_edge"] = inst.p_edge
+
+    num_sources = inst.n_src
 
     data_gen.update({
         "start_time":0,
