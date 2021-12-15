@@ -76,11 +76,12 @@ def load_cut_contacts(data_gen, t_limit):
     """
     with np.load(data_gen["path_contacts"], allow_pickle=True) as f:
         contacts = f["contacts"]
-    contacts = cut_contacts_list(contacts, 
+    return cut_contacts_list(contacts, 
                              data_gen["start_time"], 
                              t_limit, 
                              shift_t=data_gen["shift_t"], 
                              small_lambda_limit = data_gen["small_lambda_limit"])
+
 
 def epidemy_gen_new(type_graph:str = "RRG",
                     t_limit:int=15,
