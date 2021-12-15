@@ -70,6 +70,18 @@ def epidemy_gen_epinstance(inst, lim_infected=None,
 
     return data_res
 
+def load_cut_contacts(data_gen, t_limit):
+    """
+    Load contacts from file and cut them, if specified
+    """
+    with np.load(data_gen["path_contacts"], allow_pickle=True) as f:
+        contacts = f["contacts"]
+    contacts = cut_contacts_list(contacts, 
+                             data_gen["start_time"], 
+                             t_limit, 
+                             shift_t=data_gen["shift_t"], 
+                             small_lambda_limit = data_gen["small_lambda_limit"])
+
 def epidemy_gen_new(type_graph:str = "RRG",
                     t_limit:int=15,
                     mu:float=1e-10,
@@ -117,31 +129,15 @@ def epidemy_gen_new(type_graph:str = "RRG",
         contacts = generators.generate_contacts(G, t_limit, lambda_, 
                                             p_edge=p_edge, seed=seed)
     elif type_graph == "data_deltas" or type_graph == "i_bird":
-        contacts = np.load(data_gen["path_contacts"], allow_pickle=True)["contacts"]
-        contacts = cut_contacts_list(contacts, 
-                             data_gen["start_time"], 
-                             t_limit, 
-                             shift_t=data_gen["shift_t"], 
-                             small_lambda_limit = data_gen["small_lambda_limit"])
+        contacts = load_cut_contacts(data_gen, t_limit=t_limit)
         data_extend["deltas"] = np.copy(contacts)
         gamma=data_gen["gamma"]
         contacts[:, 3] = 1 - np.exp(-gamma * contacts[:,3])
     elif type_graph == "data":
-        contacts = np.load(data_gen["path_contacts"], allow_pickle=True)["contacts"]
-        contacts = cut_contacts_list(contacts, 
-                             data_gen["start_time"], 
-                             t_limit, 
-                             shift_t=data_gen["shift_t"], 
-                             small_lambda_limit = data_gen["small_lambda_limit"])
+        contacts = load_cut_contacts(data_gen=data_gen, t_limit=t_limit)
     elif type_graph == "data_deltas_2_gamma":
         rnd_gen = np.random.RandomState(seed=seed)
-        contacts = np.load(data_gen["path_contacts"], allow_pickle=True)["contacts"]
-        contacts = cut_contacts_list(contacts, 
-                             data_gen["start_time"], 
-                             t_limit, 
-                             shift_t=data_gen["shift_t"], 
-                             small_lambda_limit = data_gen["small_lambda_limit"])
-        data_extend["deltas"] = np.copy(contacts)
+        contacts = load_cut_contacts(data_gen=data_gen, t_limit=t_limit)
         #gamma=data_gen["gamma"]
         #data_extend["contacts_inference"][:, 3] = 1 - np.exp(-gamma * contacts[:,3])
         N = int(np.max(contacts[:, [1,2]])+1)
