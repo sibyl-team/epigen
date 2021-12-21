@@ -69,9 +69,11 @@ def epidemy_gen_epinstance(inst, lim_infected=None,
         inst.n = int(np.max(conts[:,1:3]))+1
     
     t_lim_c = int(np.max(data_res["contacts"][:,0]))+1
-    if print_out and  t_limit > t_lim_c:
-        print("Fixing t_limit")
+    if t_limit > t_lim_c:
+        if print_out: print("Fixing t_limit")
         inst.t_limit = t_lim_c
+
+    assert inst.t_limit == t_lim_c
 
     return data_res
 
