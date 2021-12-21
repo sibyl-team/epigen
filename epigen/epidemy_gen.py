@@ -67,6 +67,11 @@ def epidemy_gen_epinstance(inst, lim_infected=None,
         print("No graph")
         conts = data_res["contacts"]
         inst.n = int(np.max(conts[:,1:3]))+1
+    
+    t_lim_c = int(np.max(data_res["contacts"][:,0]))+1
+    if print_out and  t_limit > t_lim_c:
+        print("Fixing t_limit")
+        inst.t_limit = t_lim_c
 
     return data_res
 
@@ -76,7 +81,8 @@ def load_cut_contacts(data_gen, t_limit):
     """
     with np.load(data_gen["path_contacts"], allow_pickle=True) as f:
         contacts = f["contacts"]
-    return cut_contacts_list(contacts, 
+    
+    return cut_contacts_list(contacts.astype(float), 
                              data_gen["start_time"], 
                              t_limit, 
                              shift_t=data_gen["shift_t"], 
@@ -129,13 +135,16 @@ def epidemy_gen_new(type_graph:str = "RRG",
         print(f"nodes:{N}, edges:{len(G.edges())}")
         contacts = generators.generate_contacts(G, t_limit, lambda_, 
                                             p_edge=p_edge, seed=seed)
+        
     elif type_graph == "data_deltas" or type_graph == "i_bird":
         contacts = load_cut_contacts(data_gen, t_limit=t_limit)
         data_extend["deltas"] = np.copy(contacts)
         gamma=data_gen["gamma"]
         contacts[:, 3] = 1 - np.exp(-gamma * contacts[:,3])
+
     elif type_graph == "data":
         contacts = load_cut_contacts(data_gen=data_gen, t_limit=t_limit)
+
     elif type_graph == "data_deltas_2_gamma":
         rnd_gen = np.random.RandomState(seed=seed)
         contacts = load_cut_contacts(data_gen=data_gen, t_limit=t_limit)

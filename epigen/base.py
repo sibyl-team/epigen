@@ -76,7 +76,7 @@ class EpInstance:
                     ))
     def __repr__(self):
         reprstring = f"""EpInstance:
-    type: {self.type_graph}, d: {self.d}, N: {self.n}, seed: {self.seed},
+    type: {self.type_graph}, d: {self.d}, N: {self.n}, seed: {self.seed}, t_lim: {self.t_limit},
     lambda: {self.lambda_}, mu: {self.mu}, p_edge: {self.p_edge}, num src: {self.n_src}"""
         return reprstring
 

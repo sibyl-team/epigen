@@ -22,7 +22,7 @@ def generate_contacts(G, t_limit, lambda_, p_edge=1, seed=1):
     return contacts.view("f8").reshape(-1,4) #.astype(np.float32)
 
 
-def generate_one_sim(contacts, mu, t_limit, n, n_seed, sources=None):
+def generate_one_sim(contacts, mu, t_limit, n, n_seed, sources=None, verbose=True):
     """
     MC simulations of SIR, return configuration at T0 and Tend
 
@@ -38,7 +38,8 @@ def generate_one_sim(contacts, mu, t_limit, n, n_seed, sources=None):
             src = random.randint(0, n - 1)
             if src not in sources:
                 sources.add(src)
-    print(f" Sources {sources}")
+    if verbose:
+        print(f" Sources {sources}")
 
     #sources = np.random.randint(0,n, n_seed)
     T0 = -1
@@ -56,7 +57,7 @@ def generate_one_sim(contacts, mu, t_limit, n, n_seed, sources=None):
     return {"confs": [start_conf.tolist(), end_conf.tolist()], "inf_rec": [infected, recovery],
             "num_infected": num_inf, "num_recovery": num_recovery, "epidemy": epidemy_res, "delays": delay}
 
-def generate_sis_sim(contacts, mu, t_limit, n, n_sources, sources = None):
+def generate_sis_sim(contacts, mu, t_limit, n, n_sources, sources = None, verbose=False):
     """
     Generate SIS epidemy
     """
@@ -118,7 +119,7 @@ def generate_configurations(n, contacts,
         tries = 0
         while (not_accept and tries < 100):
             ### keep generating epidemies until we get a satisfactory one
-            results = generator_fun(contacts, mu, t_limit, n, num_source, sources=sources)
+            results = generator_fun(contacts, mu, t_limit, n, num_source, sources=sources, verbose=print_)
             tries += 1
             tot_conf_gen += 1
             ninf = results["num_infected"]
