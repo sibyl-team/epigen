@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -251,3 +252,74 @@ def make_sparse_obs_last_t(data_, t_limit, pr_sympt, seed=None, verbose=False, n
         )
 
     return obs_df, obs_json
+
+def make_obs_new(trace_epi:np.ndarray, p_test_delay, 
+            p_sympt:float, n_test_rnd:int,
+            seed=None,
+            tobs_inf_min:int=-1,
+            tobs_rnd_lim:tuple=(0, None),
+            allow_testing_pos=False):
+    """
+    New function to generate observations, from the trace
+    trace_epi: trace of epidemy, T x N
+    p_test_delay: list of probabilities for different times
+
+    """
+
+    T,N = trace_epi.shape
+    if seed == None:
+        rng = np.random
+    else:
+        rng = np.random.default_rng(np.random.PCG64(seed))
+
+    obs_free = np.ones((N,T),dtype=np.int8)
+
+    p_test_delay = np.array(p_test_delay)/sum(p_test_delay)
+    
+    ## filter out infs (not infected)
+    infected = (trace_epi!=0).sum(0) >0
+    inf_idx = np.where(infected)[0]
+    ## infection times
+    tinf_c = np.argmax(trace_epi[:,inf_idx]!=0,0)
+    ## select observed infected
+    is_sel = rng.random(tinf_c.shape) < p_sympt
+    sel = inf_idx[is_sel]
+    #print(sel)
+    tinf_sel = tinf_c[is_sel].astype(int) ## time they become infected
+    
+    # extract delays
+    c = rng.random(len(tinf_sel))[:,np.newaxis]
+    delays = np.argmax(c < p_test_delay.cumsum(), axis=1)
+    times_obs_inf = tinf_sel+delays
+    ## if some inf_t_obs are > T, they will not be observed
+    if tobs_inf_min >= 0:
+        times_obs_inf[times_obs_inf < tobs_inf_min] = tobs_inf_min
+    #( sel, times_obs_inf )
+    if not allow_testing_pos:
+        for i, tobs in zip(sel, tinf_sel):
+            obs_free[i][tobs:] = 0
+
+    obs_final = []
+    max_t_rnd = tobs_rnd_lim[1] if tobs_rnd_lim[1]!=None else T+1
+    for t in range(T):
+        infobs = sel[times_obs_inf==t]
+        #print(t, infobs)
+        obs_final += list((i,trace_epi[t,i], t) for i in infobs)
+        if n_test_rnd==0 or t<=tobs_rnd_lim[0] or t >=max_t_rnd:
+            ## skip the random obs
+            continue
+        rnd_obs_allow = np.where(obs_free[:,t])[0]
+        rng.shuffle(rnd_obs_allow)
+        rnd_obs_idx = rnd_obs_allow[:n_test_rnd]
+        #print(len(rnd_obs))
+        if len(rnd_obs_idx) < n_test_rnd:
+            warnings.warn("Number of available people to to test < n_test_rnd = {}".format(n_test_rnd))
+        
+        for k in rnd_obs_idx:
+            if not allow_testing_pos and trace_epi[t,k] != 0:
+                ### don't allow testing
+                obs_free[k,t:] = 0
+            
+            obs_final.append((k, trace_epi[t,k], t))
+
+    return obs_final
