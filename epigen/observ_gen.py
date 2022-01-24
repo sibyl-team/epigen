@@ -7,6 +7,12 @@ from .generators import calc_epidemies
 STATE_VALUE_CONVERT= {
     0: "S", 1: "I", 2:"R"
 }
+
+DEFAULT_COLS = {
+    "o": "obs",
+    "i": "node",
+    "t": "time"
+}
 def make_test_delay_draw(values,probs):
     def get_test_delay(rng=None):
         if rng is None:
@@ -253,7 +259,7 @@ def make_sparse_obs_last_t(data_, t_limit, pr_sympt, seed=None, verbose=False, n
 
     return obs_df, obs_json
 
-def make_obs_new(trace_epi:np.ndarray, p_test_delay, 
+def make_obs_new_trace(trace_epi:np.ndarray, p_test_delay, 
             p_sympt:float, n_test_rnd:int,
             seed=None,
             tobs_inf_min:int=-1,
@@ -323,3 +329,23 @@ def make_obs_new(trace_epi:np.ndarray, p_test_delay,
             obs_final.append((k, trace_epi[t,k], t))
 
     return obs_final
+
+def gen_obs_new_data(epidata, epInstance, p_test_delay, 
+            p_sympt:float, n_test_rnd:int,
+            seed=None,
+            tobs_inf_min:int=-1,
+            tobs_rnd_lim:tuple=(0, None),
+            allow_testing_pos=False):
+    
+    epidemies = calc_epidemies(epidata["epidemy"], epidata["test"], epInstance.t_limit)
+
+    #all_obs = []
+    for i, trace in enumerate(epidemies):
+        s = seed + 42*i
+        
+        yield  make_obs_new_trace(trace, p_test_delay=p_test_delay,
+            p_sympt=p_sympt, n_test_rnd=n_test_rnd,seed=s,
+            tobs_inf_min=tobs_inf_min,
+            tobs_rnd_lim=tobs_rnd_lim,
+            allow_testing_pos=allow_testing_pos)
+        
