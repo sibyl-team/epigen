@@ -306,12 +306,12 @@ def make_obs_new_trace(trace_epi:np.ndarray, p_test_delay,
             obs_free[i][tobs:] = 0
 
     obs_final = []
-    max_t_rnd = tobs_rnd_lim[1] if tobs_rnd_lim[1]!=None else T+1
+    max_t_rnd = tobs_rnd_lim[1] if tobs_rnd_lim[1]!=None else T
     for t in range(T):
         infobs = sel[times_obs_inf==t]
         #print(t, infobs)
         obs_final += list((i,trace_epi[t,i], t) for i in infobs)
-        if n_test_rnd==0 or t<=tobs_rnd_lim[0] or t >=max_t_rnd:
+        if n_test_rnd==0 or t<tobs_rnd_lim[0] or t >max_t_rnd:
             ## skip the random obs
             continue
         rnd_obs_allow = np.where(obs_free[:,t])[0]
