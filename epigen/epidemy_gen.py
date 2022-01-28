@@ -2,7 +2,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from . import generators, net_gen
-
+from . import dynamic
 
 def cut_contacts_list(contacts_, start_time, end_time, shift_t=True, small_lambda_limit = 0):
     contacts_to_save = [cc for cc in contacts_ if (cc[0] >= start_time and cc[0] < end_time and cc[3] > small_lambda_limit)]
@@ -126,6 +126,14 @@ def epidemy_gen_new(type_graph:str = "RRG",
     data_extend = {}
     contacts = []
     G = {}
+    if type_graph.split("_")[-1] == "dyn":
+        ##dynamical graph
+        dynamic_graph = True
+        r = type_graph.split("_")[:-1]
+        type_graph = "_".join(r)
+    else:
+        dynamic_graph = False
+    
     if type_graph == "RRG":
         
         d = data_gen["d"]
@@ -133,6 +141,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
         p_edge = data_gen["p_edge"]
         G = nx.random_regular_graph(d, N, seed=seed)
         print(f"nodes:{N}, edges:{len(G.edges())}")
+        if dynamic_graph: raise NotImplementedError("RRG dynamical not implemented")
         contacts = generators.generate_contacts(G, t_limit, lambda_, 
                                             p_edge=p_edge, seed=seed)
 
@@ -145,6 +154,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
         G = nx.balanced_tree(d-1, h)
         N = G.number_of_nodes()
         print(f"nodes:{N}, edges:{len(G.edges())}")
+        if dynamic_graph: raise ValueError("Wrong dynamical graph on trees")
         contacts = generators.generate_contacts(G, t_limit, lambda_, 
                                             p_edge=p_edge, seed=seed)
         
@@ -153,11 +163,14 @@ def epidemy_gen_new(type_graph:str = "RRG",
         data_extend["deltas"] = np.copy(contacts)
         gamma=data_gen["gamma"]
         contacts[:, 3] = 1 - np.exp(-gamma * contacts[:,3])
+        if dynamic_graph: raise ValueError("Wrong dynamical graph")
 
     elif type_graph == "data":
         contacts, t_limit = load_cut_contacts(data_gen=data_gen, t_limit=t_limit)
+        if dynamic_graph: raise ValueError("Wrong dynamical graph")
 
     elif type_graph == "data_deltas_2_gamma":
+        if dynamic_graph: raise ValueError("Wrong dynamical graph")
         rnd_gen = np.random.RandomState(seed=seed)
         contacts, t_limit = load_cut_contacts(data_gen=data_gen, t_limit=t_limit)
         #gamma=data_gen["gamma"]
@@ -185,6 +198,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
         data_extend["contacts_run"] = np.copy(contacts)
         
     elif type_graph == "proximity":
+        if dynamic_graph: raise NotImplementedError()
         rng = np.random.RandomState()
         rng.seed(seed)
         N = data_gen["N"]
@@ -210,10 +224,23 @@ def epidemy_gen_new(type_graph:str = "RRG",
         d= data_gen["d"]
         lambda_ = data_gen["lambda_"]
         p_edge = data_gen["p_edge"]
-        G = nx.barabasi_albert_graph(n=N, m=d, seed=seed)
+        if dynamic_graph:
+            
+            graphs = dynamic.dynamic_random_graphs(
+                N, d, t_limit=t_limit, seed=seed,
+                nxgen=dynamic._barabasi_albert,
+            )
+            rng = np.random.RandomState(np.random.PCG64(seed))
+            contacts = dynamic.gen_contacts_t(graphs,
+            lambda_gen= lambda rng : lambda_,
+            t_limit=t_limit, p_edge=p_edge, rng=rng
+            )
+            G = graphs
+        else:
+            G = nx.barabasi_albert_graph(n=N, m=d, seed=seed)
 
-        contacts = generators.generate_contacts(G, t_limit, lambda_,
-            p_edge=p_edge, seed=seed)
+            contacts = generators.generate_contacts(G, t_limit, lambda_,
+                p_edge=p_edge, seed=seed)
 
     else:
         print(f"graph {type_graph} not yet implemented")
