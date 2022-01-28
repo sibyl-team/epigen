@@ -129,6 +129,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
     if type_graph.split("_")[-1] == "dyn":
         ##dynamical graph
         dynamic_graph = True
+        if verbose: print("Try with dynamical graph")
         r = type_graph.split("_")[:-1]
         type_graph = "_".join(r)
     else:
