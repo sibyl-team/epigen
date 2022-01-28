@@ -233,9 +233,9 @@ def epidemy_gen_new(type_graph:str = "RRG",
             rng = np.random.RandomState(np.random.PCG64(seed))
             contacts = dynamic.gen_contacts_t(graphs,
             lambda_gen= lambda rng : lambda_,
-            t_limit=t_limit, p_edge=p_edge, rng=rng
+            t_limit=t_limit, p_edge=p_edge, rng=rng,
+            shuffle=True,
             )
-            G = graphs
         else:
             G = nx.barabasi_albert_graph(n=N, m=d, seed=seed)
 
