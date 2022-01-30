@@ -140,12 +140,25 @@ def epidemy_gen_new(type_graph:str = "RRG",
         d = data_gen["d"]
         lambda_ = data_gen["lambda_"]
         p_edge = data_gen["p_edge"]
-        G = nx.random_regular_graph(d, N, seed=seed)
-        print(f"nodes:{N}, edges:{len(G.edges())}")
-        if dynamic_graph: raise NotImplementedError("RRG dynamical not implemented")
-        contacts = generators.generate_contacts(G, t_limit, lambda_, 
-                                            p_edge=p_edge, seed=seed)
+        if dynamic_graph:
+            RRGgen = lambda n, d, rng, **kwargs: nx.random_regular_graph(d,n,seed=rng, **kwargs)
 
+            graphs = dynamic.dynamic_random_graphs(
+                N, d, t_limit=t_limit, seed=seed,
+                nxgen=RRGgen,
+            )
+            rng = np.random.RandomState(np.random.PCG64(seed))
+            contacts = dynamic.gen_contacts_t(graphs,
+            lambda_gen= lambda rng : lambda_,
+            t_limit=t_limit, p_edge=p_edge, rng=rng,
+            shuffle=False,
+            )
+        else:
+            G = nx.random_regular_graph(d, N, seed=seed)
+            print(f"nodes:{N}, edges:{len(G.edges())}")
+            contacts = generators.generate_contacts(G, t_limit, lambda_, 
+                                                p_edge=p_edge, seed=seed)
+    
     elif type_graph == "TREE":
         
         d = data_gen["d"]
