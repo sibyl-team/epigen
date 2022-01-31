@@ -20,14 +20,34 @@ def gen_contacts_t(graphs, lambda_gen, t_limit, p_edge=1, rng=None, shuffle=True
         nodes = np.arange(len(graphs[t].nodes))
         if shuffle:
             rng.shuffle(nodes)
-        for e in graphs[t].edges():
-            if rng.random() < p_edge:
-                contacts.append((t, nodes[e[0]], nodes[e[1]], lambda_gen(rng)))
-                if copy_back:
-                    contacts.append((t, nodes[e[1]], nodes[e[0]], lambda_gen(rng)))
-    contacts = np.array(contacts, dtype=[("t","f8"), ("i","f8"), ("j","f8"), ("lam", "f8")])
-    contacts.sort(axis=0, order=("t","i","j"))
-    return contacts.view("f8").reshape(-1,4) #.astype(np.float32)
+        edges = np.array(graphs[t].edges)
+        ## sort edges in both directions
+        edges.sort(axis=-1)
+        edges.view("i8,i8").sort(axis=0,order=("f0","f1"))
+        ## important for shuffling nodes
+        if shuffle: edges = nodes[edges]
+        #chosen = 
+        edges_chosen = edges[rng.random(len(edges)) < p_edge]
+        nedges = len(edges_chosen)
+        lambdas = np.array(
+            lambda_gen(rng, nedges)
+        )[:,np.newaxis]
+        
+        times = np.full((nedges,1), t)
+        contacts.append(np.hstack((times, edges_chosen, lambdas)))
+        if copy_back:
+            contacts.append(np.hstack(
+                (times, edges_chosen[:,::-1], lambdas)) )
+
+        #for e in sorted(graphs[t].edges()):
+        #    if rng.random() < p_edge:
+        #        contacts.append((t, nodes[e[0]], nodes[e[1]], lambda_gen(rng)))
+        #        if copy_back:
+        #            contacts.append((t, nodes[e[1]], nodes[e[0]], lambda_gen(rng)))
+    f=np.float_
+    contacts = np.concatenate(contacts) #dtype=[("t","f8"), ("i","f8"), ("j","f8"), ("lam", "f8")])
+    contacts.view(dtype=[("t",f), ("i",f), ("j",f), ("lam",f)]).sort(axis=0, order=("t","i","j"))
+    return contacts
 
 def _barabasi_albert(n,d,rng, **kwargs):
     return nx.barabasi_albert_graph(n,d,seed=rng,
