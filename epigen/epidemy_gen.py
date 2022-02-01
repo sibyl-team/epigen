@@ -164,7 +164,9 @@ def epidemy_gen_new(type_graph:str = "RRG",
     else:
         gen_lam_funct = make_gen_lambda(None)
 
-    p_drop_node = data_gen["drop_node_p"] if "drop_node_p" in data_gen else 0.
+    p_drop_node = data_gen["p_drop_node"] if "p_drop_node" in data_gen else 0.
+    if dynamic_graph and p_drop_node > 0 and verbose:
+        print("Dropping nodes with probability ", p_drop_node)
     
     if type_graph == "RRG":
         
