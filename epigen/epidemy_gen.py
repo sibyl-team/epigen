@@ -101,6 +101,31 @@ def load_cut_contacts(data_gen, t_limit):
     return cts, t_limit
 
 
+def make_gen_lambda(kind):
+    """
+    Helper function to generate lambdas. Makes anonymous function
+    which will generate another lambda function which is used in 
+    the contact generation phase
+    """
+    if kind is None or kind=="":
+        def anony(rng,lam):
+            return lambda n : [lam]*n
+        return anony
+    elif kind == "exponential":
+        def anony(rng,lam):
+            return lambda n : rng.exponential(lam,n)
+        return anony
+
+    elif kind == "pareto":
+        
+        def anony(rng,lam):
+            print(f"Pareto with shape {lam}")
+            c=min(lam, 1e-4)
+            return lambda n : rng.pareto(5.,n)*lam + lam
+        return anony
+    else:
+        raise NotImplementedError(f"kind {kind} is not implemented yet")
+
 def epidemy_gen_new(type_graph:str = "RRG",
                     t_limit:int=15,
                     mu:float=1e-10,
@@ -134,6 +159,12 @@ def epidemy_gen_new(type_graph:str = "RRG",
         type_graph = "_".join(r)
     else:
         dynamic_graph = False
+    if  "rand_lambda" in data_gen and data_gen["rand_lambda"] :
+        gen_lam_funct = make_gen_lambda(data_gen["rand_lambda"])
+    else:
+        gen_lam_funct = make_gen_lambda(None)
+
+    p_drop_node = data_gen["drop_node_p"] if "drop_node_p" in data_gen else 0.
     
     if type_graph == "RRG":
         
@@ -146,12 +177,13 @@ def epidemy_gen_new(type_graph:str = "RRG",
             graphs = dynamic.dynamic_random_graphs(
                 N, d, t_limit=t_limit, seed=seed,
                 nxgen=RRGgen,
+                p_drop_node=p_drop_node,
             )
             rng = np.random.RandomState(np.random.PCG64(seed))
             contacts = dynamic.gen_contacts_t(graphs,
-            lambda_gen= lambda rng, num : [lambda_]*num,
+            lambda_gen= gen_lam_funct(rng,lambda_),
             t_limit=t_limit, p_edge=p_edge, rng=rng,
-            shuffle=False,
+            shuffle=False, 
             )
         else:
             G = nx.random_regular_graph(d, N, seed=seed)
@@ -243,12 +275,13 @@ def epidemy_gen_new(type_graph:str = "RRG",
             graphs = dynamic.dynamic_random_graphs(
                 N, d, t_limit=t_limit, seed=seed,
                 nxgen=dynamic._barabasi_albert,
+                p_drop_node=p_drop_node,
             )
             rng = np.random.RandomState(np.random.PCG64(seed))
             contacts = dynamic.gen_contacts_t(graphs,
-            lambda_gen= lambda rng, num : [lambda_]*num,
+            lambda_gen= gen_lam_funct(rng,lambda_),
             t_limit=t_limit, p_edge=p_edge, rng=rng,
-            shuffle=True,
+            shuffle=True, 
             )
         else:
             G = nx.barabasi_albert_graph(n=N, m=d, seed=seed)

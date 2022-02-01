@@ -11,13 +11,18 @@ def gen_contacts_t(graphs, lambda_gen, t_limit, p_edge=1, rng=None, shuffle=True
             rng.random()
         except AttributeError:
             rng = np.random.Generator(np.random.PCG64(rng))
+    ## get all the indices
+    nodes = set()
+    for g in graphs:
+        nodes.update(g.nodes)
+    nodes = np.array(tuple(nodes))
+
     for t in range(t_limit):
         assert isinstance(graphs[t], nx.Graph)
         copy_back = True
         if isinstance(graphs[t], nx.DiGraph):
             copy_back = False
         
-        nodes = np.arange(len(graphs[t].nodes))
         if shuffle:
             rng.shuffle(nodes)
         edges = np.array(graphs[t].edges)
@@ -29,8 +34,9 @@ def gen_contacts_t(graphs, lambda_gen, t_limit, p_edge=1, rng=None, shuffle=True
         #chosen = 
         edges_chosen = edges[rng.random(len(edges)) < p_edge]
         nedges = len(edges_chosen)
-        lambdas = np.array(
-            lambda_gen(rng, nedges)
+        ## generate lambdas
+        lambdas = np.array(extract_lambdas(
+            lambda_gen, nedges)
         )[:,np.newaxis]
         
         times = np.full((nedges,1), t)
@@ -53,23 +59,46 @@ def _barabasi_albert(n,d,rng, **kwargs):
     return nx.barabasi_albert_graph(n,d,seed=rng,
         initial_graph=nx.generators.cycle_graph(d))
 
-def dynamic_random_graphs(n, d, t_limit,nxgen, seed:int=None, **kwargs):
+def dynamic_random_graphs(n, d, t_limit,nxgen, seed:int=None, p_drop_node=0., **kwargs):
 
     if seed is None:
         rng = np.random
     else:
-        rng = np.random.RandomState(seed)
-
+        try:
+            seed.random()
+            rng = seed
+        except AttributeError:
+            rng = np.random.RandomState(seed)
+    if p_drop_node >= 1:
+        raise ValueError("Drop of nodes must be in range [0,1)")
     graphs = []
     for t in range(t_limit):
         G = nxgen(n,d,rng, **kwargs)
+        N = len(G.nodes)
+        if p_drop_node > 0:
+            idx_remove = np.where(rng.rand(N)<p_drop_node)[0]
+            G.remove_nodes_from(idx_remove)
         graphs.append(G)
 
     return graphs
 
 
-        
+def extract_lambdas(callable_rand, n):
 
+    lambdas = np.array(callable_rand(n))
+    assert len(lambdas) == n
+    trials = 0
+    MAX_TRIALS = 20000
+    while((lambdas>=1).sum()>0):
+        idc = (lambdas>=1)
+        #print(idc.sum())
+        lambdas[idc] = np.array(callable_rand(idc.sum()))
+        trials+=1
+        if trials > MAX_TRIALS:
+            print("ERROR: MAX TRIALS FOR lambda generation reached")
+            break
+
+    return lambdas
     
 
     
