@@ -212,6 +212,13 @@ def epidemy_gen_new(type_graph:str = "RRG",
         gamma=data_gen["gamma"]
         contacts[:, 3] = 1 - np.exp(-gamma * contacts[:,3])
         if dynamic_graph: raise ValueError("Wrong dynamical graph")
+    
+    elif type_graph == "data_gamma":
+        ### small contacts count
+        contacts, t_limit = load_cut_contacts(data_gen, t_limit=t_limit)
+        if dynamic_graph: raise ValueError("Wrong dynamical graph")
+        gamma=data_gen["gamma"]
+        contacts[:, 3] = 1 - np.exp(np.log(1.-gamma) * contacts[:,3])
 
     elif type_graph == "data":
         contacts, t_limit = load_cut_contacts(data_gen=data_gen, t_limit=t_limit)
