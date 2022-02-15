@@ -160,6 +160,8 @@ def epidemy_gen_new(type_graph:str = "RRG",
     else:
         dynamic_graph = False
     if  "rand_lambda" in data_gen and data_gen["rand_lambda"] :
+        if verbose:
+            print("Random lambdas: ",data_gen["rand_lambda"])
         gen_lam_funct = make_gen_lambda(data_gen["rand_lambda"])
     else:
         gen_lam_funct = make_gen_lambda(None)
