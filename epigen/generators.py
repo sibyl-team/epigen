@@ -152,12 +152,12 @@ def generate_configurations(n, contacts,
                 mean_recover += results["num_recovery"]
                 max_inf = max(max_inf, ninf)
 
-        if print_:
-            text_ = "\r # conf {0},".format(count)
-            text_ += "mean infected: {0:.1f}, ".format(mean_inf / count)
-            text_ += "mean recover: {0:.1f}, ".format(mean_recover / count)
-            text_ += "max num infected: {0}".format(max_inf)
-            print(text_, end="")
+    if print_:
+        text_ = "\r # conf {0},".format(count)
+        text_ += "mean infected: {0:.1f}, ".format(mean_inf / count)
+        text_ += "mean recover: {0:.1f}, ".format(mean_recover / count)
+        text_ += "max num infected: {0}".format(max_inf)
+        print(text_, end="")
     print(f"\n{refused_c} ({refused_c/tot_conf_gen:.2%}) epidemies refused")
     return configurations, epidemies
 
