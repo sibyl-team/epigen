@@ -348,4 +348,14 @@ def gen_obs_new_data(epidata, epInstance, p_test_delay,
             tobs_inf_min=tobs_inf_min,
             tobs_rnd_lim=tobs_rnd_lim,
             allow_testing_pos=allow_testing_pos)
-        
+
+
+def gen_obs_custom(epidata, epInstance,gen_funct, seed, *args, **kwargs):
+    
+    epidemies = calc_epidemies(epidata["epidemy"], epidata["test"], epInstance.t_limit)
+
+    #all_obs = []
+    for i, trace in enumerate(epidemies):
+        s = seed + 42*i
+        kwargs["seed"] = s
+        yield  gen_funct(trace,*args,**kwargs)

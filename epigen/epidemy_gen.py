@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from . import generators, net_gen
 from . import dynamic
+from .base import EpInstance
 
 
 def cut_contacts_list(contacts_, start_time, end_time, shift_t=True, small_lambda_limit=0):
@@ -130,7 +131,23 @@ def make_gen_lambda(kind):
     else:
         raise NotImplementedError(f"kind {kind} is not implemented yet")
 
+def _gen_std_dyn_contacts(inst:EpInstance, p_drop_node, netgenfun, gen_lam_f, shuffle_nodes=True, seed=None):
+    if seed is None:
+        seed = inst.seed
+    graphs = dynamic.dynamic_random_graphs(
+                inst.n, inst.d, t_limit=inst.t_limit, seed=seed,
+                nxgen=netgenfun,
+                p_drop_node=p_drop_node,
+            )
+    rng = np.random.RandomState(np.random.PCG64(seed))
+    contacts = dynamic.gen_contacts_t(graphs,
+        lambda_gen= gen_lam_f(rng,inst.lambda_),
+        t_limit=inst.t_limit, p_edge=inst.p_edge, rng=rng,
+        shuffle=shuffle_nodes,
+        )
 
+    return contacts
+    
 def epidemy_gen_new(type_graph:str = "RRG",
                     t_limit:int=15,
                     mu:float=1e-10,
@@ -314,7 +331,13 @@ def epidemy_gen_new(type_graph:str = "RRG",
 
     elif type_graph == "gnp":
         if dynamic_graph:
-            raise NotImplementedError()
+            inst = EpInstance(type_graph, N, d, t_limit, lambda_, None, seed, p_edge)
+            gnp_gen = lambda n, d, rng, **kwargs: nx.gnp_random_graph(n=N, p=float(d)/N,seed=rng, **kwargs)
+            
+            contacts = _gen_std_dyn_contacts(inst, p_drop_node, 
+                gnp_gen, shuffle_nodes=False,
+                gen_lam_f=gen_lam_funct
+                )
         else:
             #p_gen = data_gen["p_gen"]
             G = nx.generators.gnp_random_graph(n=N, p=float(d)/N, seed=seed)
