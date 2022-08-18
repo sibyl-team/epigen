@@ -1,3 +1,4 @@
+from pathlib import Path
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -89,19 +90,37 @@ def load_cut_contacts(data_gen, t_limit):
     """
     Load contacts from file and cut them, if specified
     """
-    with np.load(data_gen["path_contacts"], allow_pickle=True) as f:
+    p = Path(data_gen["path_contacts"]).resolve()
+    with np.load(p, allow_pickle=True) as f:
         contacts = f["contacts"]
 
-    cts = cut_contacts_list(contacts.astype(float),
-                            data_gen["start_time"],
+    small_lambda = data_gen["small_lambda_limit"]
+    start_t = data_gen["start_time"]
+    if contacts.shape[1] ==3:
+        ## first col is i, second col is j, third col is count/lambda
+        print("Found static graph")
+        c = []
+        cc = contacts[contacts[:,2]>small_lambda]
+        sh = (cc.shape[0],1)
+        for t in range(start_t,t_limit):
+            c.append(
+                np.hstack((np.full(sh,t), cc))
+            )
+        cts = np.vstack(c)
+    elif contacts.shape[1] == 4:
+        cts = cut_contacts_list(contacts.astype(float),
+                            start_t,
                             t_limit,
                             shift_t=data_gen["shift_t"],
-                            small_lambda_limit=data_gen["small_lambda_limit"])
+                            small_lambda_limit=small_lambda)
 
-    t2 = get_t_limit(cts)
-    if t2 != t_limit:
-        print(f"GEN: Fixing t_limit to {t2}")
-        t_limit = t2
+        t2 = get_t_limit(cts)
+        if t2 != t_limit:
+            print(f"GEN: Fixing t_limit to {t2}")
+            t_limit = t2
+
+    else:
+        raise ValueError("Contact file has neither 3 or 4 columns: have {}".format(contacts.shape[1]))
 
     return cts, t_limit
 
