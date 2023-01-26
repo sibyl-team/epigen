@@ -8,9 +8,13 @@ from .base import EpInstance
 
 
 def cut_contacts_list(contacts_, start_time, end_time, shift_t=True, small_lambda_limit=0):
-    contacts_to_save = [cc for cc in contacts_ if (
-        cc[0] >= start_time and cc[0] < end_time and cc[3] > small_lambda_limit)]
-    contacts_to_save = np.array(contacts_to_save)
+    if isinstance(contacts_, np.ndarray):
+        cu_idx = (contacts_[:,0]>= start_time ) & (contacts_[:,0]<end_time) & (contacts_[:,3]>small_lambda_limit)
+        contacts_to_save = contacts_[cu_idx]
+    else:
+        contacts_to_save = [cc for cc in contacts_ if (
+            cc[0] >= start_time and cc[0] < end_time and cc[3] > small_lambda_limit)]
+        contacts_to_save = np.array(contacts_to_save)
     nodes_names = np.unique(contacts_to_save[:,1:3])
     rename_nodes = {}
     count = 0
@@ -22,8 +26,11 @@ def cut_contacts_list(contacts_, start_time, end_time, shift_t=True, small_lambd
     t_min = contacts_rename[:,0].min()
     if shift_t:
         contacts_rename[:,0] -= t_min
-    contacts_rename.astype(contacts_.dtype)
-    return contacts_rename
+    cout=contacts_rename.astype(contacts_.dtype)
+    if cout is None:
+        return contacts_rename
+    else:
+        return cout
 
 def get_t_limit(contacts):
     return int(np.max(contacts[:,0]))+1

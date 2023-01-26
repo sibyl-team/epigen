@@ -93,3 +93,13 @@ class EpInstance:
             return basestr
         else:
             return basestr+f"_nsrc_{self.n_src}"
+
+    def base_str(self):
+        basestr= "{}_n_{}_d_{}_tlim_{}_lam_{}_mu_{}_pe_{}".format(
+            self.type_graph, self.n, self.d, self.t_limit, self.lambda_,
+            0 if self.mu == 0 else self.mu, self.p_edge
+        )
+        if self.old_print:
+            return basestr
+        else:
+            return basestr+f"_nsrc_{self.n_src}"
