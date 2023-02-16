@@ -358,7 +358,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
     elif type_graph == "gnp":
         if dynamic_graph:
             inst = EpInstance(type_graph, N, d, t_limit, lambda_, None, seed, p_edge)
-            gnp_gen = lambda n, d, rng, **kwargs: nx.gnp_random_graph(n=N, p=float(d)/N,seed=rng, **kwargs)
+            gnp_gen = lambda n, d, rng, **kwargs: nx.fast_gnp_random_graph(n=N, p=float(d)/N,seed=rng, **kwargs)
             
             contacts = _gen_std_dyn_contacts(inst, p_drop_node, 
                 gnp_gen, shuffle_nodes=False,
