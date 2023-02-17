@@ -71,8 +71,8 @@ def gen_contacts_t(graphs, lambda_gen, t_limit, p_edge=1, rng=None, shuffle=True
     contacts.view(dtype=[("t",f), ("i",f), ("j",f), ("lam",f)]).sort(axis=0, order=("t","i","j"))
     return contacts
 
-def _barabasi_albert(n,d,rng, **kwargs):
-    return nx.barabasi_albert_graph(n,d,seed=rng,
+def _barabasi_albert(n,d,seed, **kwargs):
+    return nx.barabasi_albert_graph(n,d,seed=seed,
         initial_graph=nx.generators.cycle_graph(d))
 
 def dynamic_random_graphs(n, d, t_limit,nxgen, seed:int=None, p_drop_node=0., **kwargs):
@@ -89,7 +89,7 @@ def dynamic_random_graphs(n, d, t_limit,nxgen, seed:int=None, p_drop_node=0., **
         raise ValueError("Drop of nodes must be in range [0,1)")
     graphs = []
     for t in range(t_limit):
-        G = nxgen(n,d,rng, **kwargs)
+        G = nxgen(n,d,seed=rng, **kwargs)
         N = len(G.nodes)
         if p_drop_node > 0:
             idx_remove = np.where(rng.rand(N)<p_drop_node)[0]

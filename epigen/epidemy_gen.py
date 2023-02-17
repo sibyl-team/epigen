@@ -346,10 +346,22 @@ def epidemy_gen_new(type_graph:str = "RRG",
                                                     p_edge=p_edge, seed=seed)
 
     elif type_graph == "WS":
+        p_gen = data_gen["p_gen"]
         if dynamic_graph:
-            raise NotImplementedError()
+            #raise NotImplementedError()
+            graphs = dynamic.dynamic_random_graphs(
+                N,d,t_limit=t_limit, seed=seed,
+                nxgen=nx.generators.watts_strogatz_graph,
+                p=p_gen,
+            )
+            rng = np.random.RandomState(np.random.PCG64(seed))
+            contacts = dynamic.gen_contacts_t(graphs,
+                lambda_gen= gen_lam_funct(rng,lambda_),
+                t_limit=t_limit, p_edge=p_edge, rng=rng,
+                shuffle=True,
+                )
         else:
-            p_gen = data_gen["p_gen"]
+            
             G = nx.generators.watts_strogatz_graph(n=N, k=d, p=p_gen, seed=seed)
 
             contacts = generators.generate_contacts(G, t_limit, lambda_,
@@ -358,7 +370,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
     elif type_graph == "gnp":
         if dynamic_graph:
             inst = EpInstance(type_graph, N, d, t_limit, lambda_, None, seed, p_edge)
-            gnp_gen = lambda n, d, rng, **kwargs: nx.fast_gnp_random_graph(n=N, p=float(d)/N,seed=rng, **kwargs)
+            gnp_gen = lambda n, d, seed, **kwargs: nx.fast_gnp_random_graph(n=N, p=float(d)/N,seed=seed, **kwargs)
             
             contacts = _gen_std_dyn_contacts(inst, p_drop_node, 
                 gnp_gen, shuffle_nodes=False,
