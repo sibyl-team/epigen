@@ -105,9 +105,10 @@ def load_cut_contacts(data_gen, t_limit):
     start_t = data_gen["start_time"]
     if contacts.shape[1] ==3:
         ## first col is i, second col is j, third col is count/lambda
-        print("Found static graph")
+        print(f"Found static graph in {p}")
         c = []
-        cc = contacts[contacts[:,2]>small_lambda]
+        cc = contacts.astype(float)
+        cc = cc[cc[:,2]>small_lambda]
         sh = (cc.shape[0],1)
         for t in range(start_t,t_limit):
             c.append(
