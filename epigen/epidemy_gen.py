@@ -226,7 +226,7 @@ def epidemy_gen_new(type_graph:str = "RRG",
     if type_graph == "RRG":
 
         if dynamic_graph:
-            RRGgen = lambda n, d, rng, **kwargs: nx.random_regular_graph(d,n,seed=rng, **kwargs)
+            RRGgen = lambda n, d, seed, **kwargs: nx.random_regular_graph(d,n,seed=seed, **kwargs)
 
             graphs = dynamic.dynamic_random_graphs(
                 N, d, t_limit=t_limit, seed=seed,
