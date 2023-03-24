@@ -391,7 +391,13 @@ def epidemy_gen_new(type_graph:str = "RRG",
 
     print(f"number of contacts: {len(contacts)}")
     # rewrite N
-    N = int(np.max(contacts[:, [1,2]])+1)
+    # avoid having a graph with N nodes where node N-1
+    # has no contacts => max(contacts[:,[1:2]]) becomes N-2 
+    if G is not None:
+        N = len(G.nodes)
+    else:
+        N = int(np.max(contacts[:, [1,2]])+1)
+    
     if lim_infected == None:
         lim_infected = int(N/20)
     elif lim_infected < 1 and lim_infected > 0:
