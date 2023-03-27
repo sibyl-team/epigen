@@ -384,6 +384,19 @@ def epidemy_gen_new(type_graph:str = "RRG",
             contacts = generators.generate_contacts(G, t_limit, lambda_,
                                                     p_edge=p_edge, seed=seed)
 
+    elif type_graph == "rnd_geom":
+        if dynamic_graph:
+            raise NotImplementedError
+        else:
+            #p_gen = data_gen["p_gen"]
+            rng = np.random.RandomState(np.random.PCG64(seed))
+            G =net_gen.soft_random_geometric_graph(n=N, 
+                radius=np.sqrt(data_gen["scale"]/N),
+                seed=rng)
+
+            contacts = generators.generate_contacts(G, t_limit, lambda_,
+                                                    p_edge=p_edge, seed=seed)
+
     else:
         raise ValueError(f"graph {type_graph} not yet implemented")
 
