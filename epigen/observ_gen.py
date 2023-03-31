@@ -42,7 +42,7 @@ def create_observations(infect_t, all_epidemies, num_test_t:int,
             p_asym:float, test_delay_draw, seed=None,
             debug:bool=False, 
             verbose:bool=False,
-            get_state_int:bool=False,min_t_inf:int=0):
+            get_state_int:bool=False,min_t_inf:int=0, v_old=None):
     """
     Function to make the observations, both in table format and JSON
     infect_t : time instant of infection (BEFORE showing up as infected)
@@ -79,11 +79,22 @@ def create_observations(infect_t, all_epidemies, num_test_t:int,
                 delay_test = test_delay_draw(rng=randsg)
                 t_obs = int(inf_times[i])+1+delay_test
                 t_obs = max(t_obs, min_t_inf)
-                if t_obs <=t_limit:
-                    if t_obs not in obs_sympt_times.keys():
-                        obs_sympt_times[t_obs] = set()
-                    obs_idx_mat[t_obs,i] = True
-                    obs_sympt_times[t_obs].add(i)
+                
+                ignore = False
+                if v_old is not None:
+                    if v_old == 1 or v_old == "1":
+                        ## old behavior
+                        if t_obs > t_limit:
+                            ignore = True
+                if ignore:
+                    ## skip rest
+                    continue
+                t_obs = t_limit if t_obs > t_limit else t_obs
+                #if t_obs <=t_limit:
+                if t_obs not in obs_sympt_times.keys():
+                    obs_sympt_times[t_obs] = set()
+                obs_idx_mat[t_obs,i] = True
+                obs_sympt_times[t_obs].add(i)
         #print("Symptomatic nodes", obs_inf_sympto)
         ## from now on, inf contains the nodes excluded from ranking
         untested = np.ones_like(inf)
@@ -140,7 +151,7 @@ def create_observations(infect_t, all_epidemies, num_test_t:int,
 
 
 def make_sparse_obs_default(data_, t_limit, ntests, pr_sympt, p_test_delay,
-    seed=None, verbose=False, numeric_obs=False,min_t_inf:int=-1):
+    seed=None, verbose=False, numeric_obs=False,min_t_inf:int=-1, old_ver=None):
     """
     Make observations given the data produced by epidemy gen
     """
@@ -155,7 +166,7 @@ def make_sparse_obs_default(data_, t_limit, ntests, pr_sympt, p_test_delay,
             seed=seed,
             debug=False, verbose=verbose,
             get_state_int=numeric_obs,
-            min_t_inf=min_t_inf,
+            min_t_inf=min_t_inf, v_old=old_ver
         )
 
     return obs_df, obs_json
