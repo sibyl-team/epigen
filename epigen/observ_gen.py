@@ -160,6 +160,20 @@ def make_sparse_obs_default(data_, t_limit, ntests, pr_sympt, p_test_delay,
 
     return obs_df, obs_json
 
+def define_delay_probs(p_test_delay):
+    if p_test_delay[0] == "uniform":
+        delay_max = int(p_test_delay[1])
+        print(f"Uniform observ days: {delay_max}")
+        probs = np.ones(delay_max+1)
+        return probs/probs.sum()
+    else:
+        
+        try:
+            #v=float(p_test_delay[0])
+            probs = np.array([float(x) for x in p_test_delay])
+            return probs/probs.sum()
+        except ValueError as e:
+            raise ValueError("Have to give probabilities") from e
 
 def create_obs_for_inf_last(infect_t, all_epidemies,
             p_asym:float, seed=None,
@@ -276,6 +290,7 @@ def make_obs_new_trace(trace_epi:np.ndarray, p_test_delay,
     if seed == None:
         rng = np.random
     else:
+        ## FIX
         rng = np.random.default_rng(np.random.PCG64(seed))
 
     obs_free = np.ones((N,T),dtype=np.int8)
