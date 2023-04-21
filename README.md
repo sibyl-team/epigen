@@ -1,5 +1,8 @@
 # EpiGen: generator of epidemic cascades on synthetic graphs
 
+[![DOI](https://zenodo.org/badge/405091892.svg)](https://zenodo.org/badge/latestdoi/405091892)
+
+
 This Python package can be used to generate discrete time epidemic cascades with either the SIR Model or the SIS Model.
 It can also reduce to the SI model, by setting the probability of recovery to 0.
 The software then can generate observations on the epidemic cascades.
